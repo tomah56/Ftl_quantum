@@ -4,8 +4,6 @@ from qiskit_ibm_runtime import QiskitRuntimeService, SamplerV2 as Sampler
 # You'll need to specify the credentials when initializing QiskitRuntimeService, if they were not previously saved.
 service = QiskitRuntimeService()
 
-backend_simu = service.backends(simulator=True, operational=True)
-
 # Why are the cloud simulators being retired?
 # The cloud simulators are being retired for several reasons:
 
