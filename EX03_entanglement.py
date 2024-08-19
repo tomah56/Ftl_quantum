@@ -1,5 +1,4 @@
 from qiskit_aer.primitives import Sampler
- 
 from qiskit import QuantumCircuit
 from qiskit.visualization import plot_histogram
 import matplotlib.pyplot as plt

@@ -1,7 +1,7 @@
 from qiskit import QuantumCircuit
 from qiskit_ibm_runtime import QiskitRuntimeService, SamplerV2 as Sampler
  
-# You'll need to specify the credentials when initializing QiskitRuntimeService, if they were not previously saved.
+# initializing QiskitRuntimeService, if they were not previously saved you have to give your token.
 service = QiskitRuntimeService()
 
 # Why are the cloud simulators being retired?
