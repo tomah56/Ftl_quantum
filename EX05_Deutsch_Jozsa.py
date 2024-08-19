@@ -1,4 +1,9 @@
-from qiskit import QuantumCircuit, Aer, execute
+from qiskit import QuantumCircuit
+from qiskit_aer import AerSimulator
+from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
+from qiskit_ibm_runtime import QiskitRuntimeService, SamplerV2 as Sampler
+
+
 from qiskit.visualization import plot_histogram
 import matplotlib.pyplot as plt
 
@@ -14,15 +19,15 @@ qc.h(range(n + 1))
 
 # Oracle: Example of a constant function oracle
 # Uncomment this section for a constant oracle
-# def oracle(qc, n):
-#     # Apply no operation, function f(x) = 0 or 1 for all x
-#     pass
+def oracle(qc, n):
+    # Apply no operation, function f(x) = 0 or 1 for all x
+    pass
 
 # Oracle: Example of a balanced function oracle
 # Uncomment this section for a balanced oracle
-def oracle(qc, n):
-    for i in range(n):
-        qc.cx(i, n)
+# def oracle(qc, n):
+#     for i in range(n):
+#         qc.cx(i, n)
 
 # Apply the oracle
 oracle(qc, n)
@@ -34,21 +39,57 @@ qc.h(range(n))
 qc.measure(range(n), range(n))
 
 # Execute the circuit on a simulator
-simulator = Aer.get_backend('qasm_simulator')
-result = execute(qc, backend=simulator, shots=1024).result()
-counts = result.get_counts()
-
-# Plot the results
-plot_histogram(counts)
-plt.show()
-
-# Print the result
-print(counts)
-
-# Interpretation of results
-if '000' in counts and counts['000'] == 1024:
-    print("The oracle is constant.")
+aer_sim = AerSimulator()
+res = aer_sim.run(qc, shots=1, memory=True).result()
+measurements = res.get_memory()
+if "1" in measurements[0]:
+    print("balanced")
 else:
-    print("The oracle is balanced.")
+    print("constant")
 
-# https://learning.quantum.ibm.com/course/fundamentals-of-quantum-algorithms/quantum-query-algorithms#section-the-deutsch-jozsa-algorithm
+# pm = generate_preset_pass_manager(backend=aer_sim, optimization_level=1)
+# transplie_opti = pm.run(qc)
+
+# sampler = Sampler(aer_sim)
+# # execute the quantum circuit
+# results = sampler.run([transplie_opti], shots=1024).result()
+# print("results:", results)
+# pub_result = results[0]
+# print("pub results:",  pub_result)
+# # values = pub_result.data.meas.get_counts()
+# values = pub_result.data.c.array 
+# values2 = pub_result.data.evs
+# # values = pub_result.data.values()
+# print("values:",values2)
+
+# # To verify all entries, convert to a list and check
+# all_results = list(values)  # Convert to list if it isn't already
+
+# # Check if all elements are `[7]`
+# uniform_result = all(entry == [7] for entry in all_results)
+
+# print("All results are [7]:", uniform_result)
+
+# # # Convert dict_values to a list
+# # values_list = list(values)
+
+# # # Now you can access the BitArray object
+# # bit_array = values_list[0]
+
+# # # Print or work with the BitArray object
+# # print(bit_array)
+# # print(counts)
+# # Print the result
+
+# # Interpretation of results
+# # if '000' in counts and counts['000'] == 1024:
+# #     print("The oracle is constant.")
+# # else:
+# #     print("The oracle is balanced.")
+
+# # Plot the results
+# # plot_histogram(counts)
+# # plt.show()
+
+
+# # https://learning.quantum.ibm.com/course/fundamentals-of-quantum-algorithms/quantum-query-algorithms#section-the-deutsch-jozsa-algorithm
