@@ -4,8 +4,6 @@ from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
 from qiskit_ibm_runtime import QiskitRuntimeService, SamplerV2 as Sampler
 from qiskit.visualization import plot_histogram
 import matplotlib.pyplot as plt
-import numpy as np
-from collections import Counter
 
 service = QiskitRuntimeService()
 
@@ -32,22 +30,19 @@ qc.h(range(n + 1))
 #         qc.cx(i, n)
 
 def oracle(qc, n):
-    # n is the number of qubits representing the input
+     # n is the number of qubits representing the input
     # Add a single qubit for the output
     output_qubit = n
-    
-    # Apply a series of CNOT gates to implement the parity check function
+
+    # Apply the XOR pattern
     for i in range(n):
         qc.cx(i, output_qubit)
     
-    # Apply a final X gate to ensure the oracle function outputs 1 when the parity is odd
-    qc.x(output_qubit)
+    # Apply a Z gate to flip the sign of the |1⟩ state if needed
+    qc.z(output_qubit)
     
-    # Apply a final multi-controlled Z gate to flip the sign of the |1⟩ state
-    qc.h(output_qubit)
-    qc.mcx(list(range(n)), output_qubit)
-    qc.h(output_qubit)
-
+    # Apply a final X gate to ensure the output is 1 for the correct cases
+    qc.x(output_qubit)
 
 # Apply the oracle
 oracle(qc, n)
@@ -86,73 +81,13 @@ print("results: ", results)
 
 pub_result = results[0]
 print("pub results:",  pub_result)
-# values = pub_result.data.meas.get_counts()
-# print("values:", dir(pub_result.data))
-# print("values:", pub_result.data.values())
 
-# values = pub_result.data.meas.get_counts()
-values = pub_result.data.c.array 
+values = pub_result.data.c.get_counts()
 
+print("values:", values)
+plot_histogram(values)
+plt.show() 
 
-results = np.array(values)
-
-# Convert the results into bitstrings
-bitstrings = ['{:04b}'.format(int(res)) for res in results.flatten()]
-
-# Count the occurrences of each bitstring
-counts = Counter(bitstrings)
-
-# Sort the bitstrings to display them in order
-sorted_bitstrings = sorted(counts.keys())
-
-# Prepare data for the histogram
-x_values = sorted_bitstrings
-y_values = [counts[bitstring] for bitstring in sorted_bitstrings]
-
-# Plot the histogram
-plt.figure(figsize=(10, 6))
-plt.bar(x_values, y_values, color='blue')
-plt.xlabel('Bitstring Outcome')
-plt.ylabel('Count')
-plt.title('Histogram of Quantum Measurement Outcomes')
-plt.show()
-
-# pub_result = results[0]
-# print("pub results:",  pub_result)
-# # values = pub_result.data.meas.get_counts()
-# values = pub_result.data.c.array 
-# values2 = pub_result.data.evs
-# # values = pub_result.data.values()
-# print("values:",values2)
-
-# # To verify all entries, convert to a list and check
-# all_results = list(values)  # Convert to list if it isn't already
-
-# # Check if all elements are `[7]`
-# uniform_result = all(entry == [7] for entry in all_results)
-
-# print("All results are [7]:", uniform_result)
-
-# # # Convert dict_values to a list
-# # values_list = list(values)
-
-# # # Now you can access the BitArray object
-# # bit_array = values_list[0]
-
-# # # Print or work with the BitArray object
-# # print(bit_array)
-# # print(counts)
-# # Print the result
-
-# # Interpretation of results
-# # if '000' in counts and counts['000'] == 1024:
-# #     print("The oracle is constant.")
-# # else:
-# #     print("The oracle is balanced.")
-
-# # Plot the results
-# # plot_histogram(counts)
-# # plt.show()
 
 
 # # https://learning.quantum.ibm.com/course/fundamentals-of-quantum-algorithms/quantum-query-algorithms#section-the-deutsch-jozsa-algorithm
