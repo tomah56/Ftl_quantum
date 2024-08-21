@@ -26,7 +26,7 @@ service = QiskitRuntimeService()
 
 #  for EX05
 # Balancend function job
-job = service.job('cv29g28t1eag0085j9xg')
+job = service.job('cv2bfrf12hg0008dh5fg')
 
 # Constant function job
 # job = service.job('cv28srq184p00089kv0g')
@@ -48,6 +48,8 @@ values = pub_result.data.c.array
 values = pub_result.data.c.get_counts()
 
 print("values:", values)
+plot_histogram(values)
+plt.show() 
 
 # results = np.array(values)
 

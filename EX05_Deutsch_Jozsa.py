@@ -18,31 +18,30 @@ qc.x(n)
 qc.h(range(n + 1))
 
 # Oracle: Example of a constant function oracle
-# Uncomment this section for a constant oracle
 # def oracle(qc, n):
 #     # Apply no operation, function f(x) = 0 or 1 for all x
 #     pass
 
 # Oracle: Example of a balanced function oracle
-# Uncomment this section for a balanced oracle
-# def oracle(qc, n):
-#     for i in range(n):
-#         qc.cx(i, n)
-
 def oracle(qc, n):
-     # n is the number of qubits representing the input
-    # Add a single qubit for the output
-    output_qubit = n
-
-    # Apply the XOR pattern
     for i in range(n):
-        qc.cx(i, output_qubit)
+        qc.cx(i, n)
+
+# Balanced 2
+# def oracle(qc, n):
+#      # n is the number of qubits representing the input
+#     # Add a single qubit for the output
+#     output_qubit = n
+
+#     # Apply the XOR pattern
+#     for i in range(n):
+#         qc.cx(i, output_qubit)
     
-    # Apply a Z gate to flip the sign of the |1⟩ state if needed
-    qc.z(output_qubit)
+#     # Apply a Z gate to flip the sign of the |1⟩ state if needed
+#     qc.z(output_qubit)
     
-    # Apply a final X gate to ensure the output is 1 for the correct cases
-    qc.x(output_qubit)
+#     # Apply a final X gate to ensure the output is 1 for the correct cases
+#     qc.x(output_qubit)
 
 # Apply the oracle
 oracle(qc, n)
@@ -65,7 +64,6 @@ qc.measure(range(n), range(n))
 
 backend = service.least_busy(operational=True, simulator=False)
 
-
 pm = generate_preset_pass_manager(backend=backend, optimization_level=1)
 transplie_opti = pm.run(qc)
 
@@ -77,10 +75,10 @@ print("Job id: ", job.job_id())
 results = job.result()
 
 
-print("results: ", results)
+# print("results: ", results)
 
 pub_result = results[0]
-print("pub results:",  pub_result)
+# print("pub results:",  pub_result)
 
 values = pub_result.data.c.get_counts()
 
@@ -89,5 +87,11 @@ plot_histogram(values)
 plt.show() 
 
 
+# Hadamard gates are applied again to the control qubits.
+# This step effectively "undoes" the superposition if the oracle is constant,
+#  collapsing the control qubits back to the ∣000⟩ state.
 
-# # https://learning.quantum.ibm.com/course/fundamentals-of-quantum-algorithms/quantum-query-algorithms#section-the-deutsch-jozsa-algorithm
+# If the oracle is balanced, the superposition states interfere destructively for the ∣000⟩ state, 
+# causing at least one of the control qubits to be measured as ∣1⟩.
+
+# https://learning.quantum.ibm.com/course/fundamentals-of-quantum-algorithms/quantum-query-algorithms#section-the-deutsch-jozsa-algorithm
