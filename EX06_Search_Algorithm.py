@@ -2,13 +2,10 @@ from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
 from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
 from qiskit_ibm_runtime import QiskitRuntimeService, SamplerV2 as Sampler
-from qiskit.visualization import plot_histogram
-import math
 from qiskit.circuit.library import GroverOperator, MCMT, ZGate
 from qiskit.visualization import plot_distribution
 import matplotlib.pyplot as plt
 
-# service = QiskitRuntimeService()
 service = QiskitRuntimeService()
 
 
@@ -19,13 +16,10 @@ def grover_oracle(marked_states, n):
 
     Parameters:
         marked_states (str or list): Marked states of oracle
-
+        n for the number of qubits we need.
     Returns:
         QuantumCircuit: Quantum circuit representing Grover oracle
     """
-    if not isinstance(marked_states, list):
-        marked_states = [marked_states]
-    # Compute the number of qubits in circuit
     num_qubits = n
 
     qc = QuantumCircuit(num_qubits)
@@ -40,13 +34,13 @@ def grover_oracle(marked_states, n):
         qc.x(zero_inds)
         qc.compose(MCMT(ZGate(), num_qubits - 1, 1), inplace=True)
         qc.x(zero_inds)
-    return qc
+    return qc.to_gate()
 
 def create_diffuser(n):
     """Create the Grover diffuser."""
     diffuser = QuantumCircuit(n)
     diffuser.h(range(n))
-    diffuser.x(range(n))
+    diffuser.x(range(n)) # flip
     diffuser.h(n-1)
     diffuser.mcx(list(range(n-1)), n-1)  # Multi-controlled X gate
     diffuser.h(n-1)
@@ -54,32 +48,56 @@ def create_diffuser(n):
     diffuser.h(range(n))
     return diffuser.to_gate()
 
+
 marked_states = ["011", "100"]
 
-oracle = grover_oracle(marked_states)
+if not isinstance(marked_states, list):
+    marked_states = [marked_states]
+
+n = len(marked_states[0])
+
+
+# Initialize the quantum circuit
+qc = QuantumCircuit(n, n)
+
+# Apply Hadamard gates to create superposition
+qc.h(range(n))
+
+# Apply the custom Oracle to mark the state
+oracle = grover_oracle(marked_states, n)
+qc.append(oracle, range(n))
+
+#  Diffuser: Apply the Grover diffusion operator
+diffuser = create_diffuser(n)
+qc.append(diffuser, range(n))
+
+# Measure the qubits
+qc.measure(range(n), range(n))
+# qc.measure_all()
+
 # oracle.draw(output="mpl", style="iqp")
 # plt.show() 
 
-grover_op = GroverOperator(oracle)
+# grover_op = GroverOperator(oracle)
 
 # Repeated applications of this grover_op circuit amplify the marked states, 
 # making them the most probable bit-strings in the output distribution from the circuit. 
 # There is an optimal number of such applications that is determined by the ratio of marked states 
 # to total number of possible computational states:
 
-optimal_num_iterations = math.floor(
-    math.pi / (4 * math.asin(math.sqrt(len(marked_states) / 2**grover_op.num_qubits)))
-)
+# optimal_num_iterations = math.floor(
+#     math.pi / (4 * math.asin(math.sqrt(len(marked_states) / 2**grover_op.num_qubits)))
+# )
 
 
 
-qc = QuantumCircuit(grover_op.num_qubits)
-# Create even superposition of all basis states
-qc.h(range(grover_op.num_qubits))
-# Apply Grover operator the optimal number of times
-qc.compose(grover_op.power(optimal_num_iterations), inplace=True)
-# Measure all qubits
-qc.measure_all()
+# qc = QuantumCircuit(grover_op.num_qubits)
+# # Create even superposition of all basis states
+# qc.h(range(grover_op.num_qubits))
+# # Apply Grover operator the optimal number of times
+# qc.compose(grover_op.power(optimal_num_iterations), inplace=True)
+# # Measure all qubits
+# qc.measure_all()
 
 # Execute the circuit on a simulator ----- SIMU -------
 # backend = AerSimulator()
@@ -87,30 +105,18 @@ qc.measure_all()
 # real Quantum computer
 backend = service.least_busy(operational=True, simulator=False)
 
-
 target = backend.target
 pm = generate_preset_pass_manager(target=target, optimization_level=3)
-
 circuit_isa = pm.run(qc)
 
 sampler = Sampler(backend)
-# sampler.options.default_shots = 10_000
 job = sampler.run([circuit_isa], shots=5000)
 result = job.result()
 print("Job id: ", job.job_id())
 
-dist = result[0].data.meas.get_counts()
+dist = result[0].data.c.get_counts()
 print("Dist: ", dist)
 
-# ----- end SIMU -----
-# allopt =  {'000': 0, '001': 0, '010': 0, '101': 0, '110': 0, '111': 0}
-
-# combined_dict = {**allopt, **dist}
-
-# # Sort the combined dictionary by the key names
-# sorted_dict = dict(sorted(combined_dict.items()))
-
-# plot_distribution(sorted_dict)
 plot_distribution(dist)
 plt.show() 
 
