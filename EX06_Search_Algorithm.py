@@ -5,6 +5,8 @@ from qiskit_ibm_runtime import QiskitRuntimeService, SamplerV2 as Sampler
 from qiskit.circuit.library import GroverOperator, MCMT, ZGate
 from qiskit.visualization import plot_distribution
 import matplotlib.pyplot as plt
+import numpy as np
+
 
 service = QiskitRuntimeService()
 
@@ -48,7 +50,7 @@ def create_diffuser(n):
     diffuser.h(range(n))
     return diffuser.to_gate()
 
-
+# change imput to see different states
 marked_states = ["011", "100"]
 
 if not isinstance(marked_states, list):
@@ -65,32 +67,37 @@ qc.h(range(n))
 
 # Apply the custom Oracle to mark the state
 oracle = grover_oracle(marked_states, n)
-qc.append(oracle, range(n))
 
 #  Diffuser: Apply the Grover diffusion operator
 diffuser = create_diffuser(n)
-qc.append(diffuser, range(n))
+
+grover_iterations = int(np.floor(np.pi/4 * np.sqrt(2**n)))
+
+# Apply Grover iterations to reach sqrt(N)
+for _ in range(grover_iterations):
+    qc.append(oracle, range(n))
+    qc.append(diffuser, range(n))
+
 
 # Measure the qubits
 qc.measure(range(n), range(n))
 # qc.measure_all()
 
+# print the circuit.
 # oracle.draw(output="mpl", style="iqp")
 # plt.show() 
 
+# # --------------------- GoverOperator implementation -------------------------
+# checking existing implementation to compere
 # grover_op = GroverOperator(oracle)
 
 # Repeated applications of this grover_op circuit amplify the marked states, 
 # making them the most probable bit-strings in the output distribution from the circuit. 
 # There is an optimal number of such applications that is determined by the ratio of marked states 
 # to total number of possible computational states:
-
 # optimal_num_iterations = math.floor(
 #     math.pi / (4 * math.asin(math.sqrt(len(marked_states) / 2**grover_op.num_qubits)))
 # )
-
-
-
 # qc = QuantumCircuit(grover_op.num_qubits)
 # # Create even superposition of all basis states
 # qc.h(range(grover_op.num_qubits))
@@ -98,11 +105,14 @@ qc.measure(range(n), range(n))
 # qc.compose(grover_op.power(optimal_num_iterations), inplace=True)
 # # Measure all qubits
 # qc.measure_all()
+# # ---------------------- END Grove function compere -------------------------
 
-# Execute the circuit on a simulator ----- SIMU -------
+
+# #  ------------------- SIMULATIO -------------------
+# Execute the circuit on a simulato
 # backend = AerSimulator()
 
-# real Quantum computer
+# # --------------real Quantum computer --------------
 backend = service.least_busy(operational=True, simulator=False)
 
 target = backend.target
@@ -119,11 +129,6 @@ print("Dist: ", dist)
 
 plot_distribution(dist)
 plt.show() 
-
-
-
-
-
 
 
 
