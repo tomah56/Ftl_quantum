@@ -5,8 +5,6 @@ from qiskit_ibm_runtime import QiskitRuntimeService, SamplerV2 as Sampler
 from qiskit.circuit.library import GroverOperator, MCMT, ZGate
 from qiskit.visualization import plot_distribution
 import matplotlib.pyplot as plt
-import numpy as np
-
 
 service = QiskitRuntimeService()
 
@@ -51,7 +49,7 @@ def create_diffuser(n):
     return diffuser.to_gate()
 
 # change imput to see different states
-marked_states = ["011", "100"]
+marked_states = ["0101", "1000"]
 
 if not isinstance(marked_states, list):
     marked_states = [marked_states]
@@ -67,17 +65,11 @@ qc.h(range(n))
 
 # Apply the custom Oracle to mark the state
 oracle = grover_oracle(marked_states, n)
+qc.append(oracle, range(n))
 
 #  Diffuser: Apply the Grover diffusion operator
 diffuser = create_diffuser(n)
-
-grover_iterations = int(np.floor(np.pi/4 * np.sqrt(2**n)))
-
-# Apply Grover iterations to reach sqrt(N)
-for _ in range(grover_iterations):
-    qc.append(oracle, range(n))
-    qc.append(diffuser, range(n))
-
+qc.append(diffuser, range(n))
 
 # Measure the qubits
 qc.measure(range(n), range(n))
@@ -129,7 +121,6 @@ print("Dist: ", dist)
 
 plot_distribution(dist)
 plt.show() 
-
 
 
 # Grover's algorithm
