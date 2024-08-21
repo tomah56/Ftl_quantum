@@ -5,6 +5,8 @@ from qiskit_ibm_runtime import QiskitRuntimeService, SamplerV2 as Sampler
 from qiskit.circuit.library import GroverOperator, MCMT, ZGate
 from qiskit.visualization import plot_distribution
 import matplotlib.pyplot as plt
+import math
+
 
 service = QiskitRuntimeService()
 
@@ -20,21 +22,40 @@ def grover_oracle(marked_states, n):
     Returns:
         QuantumCircuit: Quantum circuit representing Grover oracle
     """
-    num_qubits = n
+    # num_qubits = n
 
-    qc = QuantumCircuit(num_qubits)
-    # Mark each target state in the input list
-    for target in marked_states:
-        # Flip target bit-string to match Qiskit bit-ordering
-        rev_target = target[::-1]
-        # Find the indices of all the '0' elements in bit-string
-        zero_inds = [ind for ind in range(num_qubits) if rev_target.startswith("0", ind)]
-        # Add a multi-controlled Z-gate with pre- and post-applied X-gates (open-controls)
-        # where the target bit-string has a '0' entry
-        qc.x(zero_inds)
-        qc.compose(MCMT(ZGate(), num_qubits - 1, 1), inplace=True)
-        qc.x(zero_inds)
-    return qc.to_gate()
+    # qc = QuantumCircuit(num_qubits)
+    # # Mark each target state in the input list
+    # for target in marked_states:
+    #     # Flip target bit-string to match Qiskit bit-ordering
+    #     rev_target = target[::-1]
+    #     # Find the indices of all the '0' elements in bit-string
+    #     zero_inds = [ind for ind in range(num_qubits) if rev_target.startswith("0", ind)]
+    #     # Add a multi-controlled Z-gate with pre- and post-applied X-gates (open-controls)
+    #     # where the target bit-string has a '0' entry
+    #     qc.x(zero_inds)
+    #     qc.compose(MCMT(ZGate(), num_qubits - 1, 1), inplace=True)
+    #     qc.x(zero_inds)
+    # return qc.to_gate()
+    oracle = QuantumCircuit(n)
+
+    # Apply X gates to flip to the marked state
+    for i, bit in enumerate(marked_states):
+        if bit == '0':
+            oracle.x(i)
+    
+    # Apply a multi-controlled Z gate
+    oracle.h(n-1)
+    for i in range(n-1):
+        oracle.cx(i, n-1)
+    oracle.h(n-1)
+    
+    # Apply X gates to flip back to the original state
+    for i, bit in enumerate(marked_states):
+        if bit == '0':
+            oracle.x(i)
+    
+    return oracle.to_gate()
 
 def create_diffuser(n):
     """Create the Grover diffuser."""
@@ -49,7 +70,7 @@ def create_diffuser(n):
     return diffuser.to_gate()
 
 # change imput to see different states
-marked_states = ["0101", "1000"]
+marked_states = ["0101"]
 
 if not isinstance(marked_states, list):
     marked_states = [marked_states]
@@ -70,6 +91,17 @@ qc.append(oracle, range(n))
 #  Diffuser: Apply the Grover diffusion operator
 diffuser = create_diffuser(n)
 qc.append(diffuser, range(n))
+
+
+optimal_num_iterations = math.floor(
+    math.pi / (4 * math.asin(math.sqrt(len(marked_states) / 2**n)))
+)
+
+# Apply Grover iterations
+for _ in range(optimal_num_iterations):
+    qc.append(oracle, range(n))
+    qc.append(diffuser, range(n))
+ 
 
 # Measure the qubits
 qc.measure(range(n), range(n))
