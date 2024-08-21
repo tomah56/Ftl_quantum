@@ -4,12 +4,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 service = QiskitRuntimeService()
-job = service.job('cv2z5yqfkm5g008pqs7g')
+job = service.job('cv30a0rqxmm000834ve0')
 
 job_result = job.result()
 pub_result = job.result()[0]
 print("pub results:",  pub_result)
-values = pub_result.data.c.get_counts()
+# values = pub_result.data.c.get_counts()
+values = pub_result.data.meas.get_counts()
 print("values:", values)
 
 # plot_histogram(values)

@@ -6,131 +6,86 @@ from qiskit.circuit.library import GroverOperator, MCMT, ZGate
 from qiskit.visualization import plot_distribution
 import matplotlib.pyplot as plt
 import math
+from qiskit.circuit.library import MCXGate
+
 
 
 service = QiskitRuntimeService()
 
+def grover_oracle(marked_states):
+    """Build a Grover oracle for multiple marked states"""
+    if not isinstance(marked_states, list):
+        marked_states = [marked_states]
+    # Compute the number of qubits in circuit
+    num_qubits = len(marked_states[0])  # All marked states are assumed to be of the same length
+    qc = QuantumCircuit(num_qubits)
+    
+    for target in marked_states:
+        # Flip target bit-string to match Qiskit bit-ordering
+        rev_target = target[::-1]
+        # Marking the state
+        for i, bit in enumerate(rev_target):
+            if bit == '0':
+                qc.x(i)
+        
+        # Implement multi-controlled Z-gate using a combination of Hadamard and CNOT gates
+        qc.h(num_qubits - 1)  # Apply Hadamard to the target qubit
+        qc.mcx(list(range(num_qubits - 1)), num_qubits - 1)  # Multi-controlled X (CNOT) on all qubits except the target
+        qc.h(num_qubits - 1)  # Apply Hadamard to the target qubit again
+        
+        # Undo the X gates
+        for i, bit in enumerate(rev_target):
+            if bit == '0':
+                qc.x(i)
+    return qc
 
-def grover_oracle(marked_states, n):
-    """Build a Grover oracle for multiple marked states
-
-    Here we assume all input marked states have the same number of bits
-
-    Parameters:
-        marked_states (str or list): Marked states of oracle
-        n for the number of qubits we need.
-    Returns:
-        QuantumCircuit: Quantum circuit representing Grover oracle
-    """
-    # num_qubits = n
-
-    # qc = QuantumCircuit(num_qubits)
-    # # Mark each target state in the input list
-    # for target in marked_states:
-    #     # Flip target bit-string to match Qiskit bit-ordering
-    #     rev_target = target[::-1]
-    #     # Find the indices of all the '0' elements in bit-string
-    #     zero_inds = [ind for ind in range(num_qubits) if rev_target.startswith("0", ind)]
-    #     # Add a multi-controlled Z-gate with pre- and post-applied X-gates (open-controls)
-    #     # where the target bit-string has a '0' entry
-    #     qc.x(zero_inds)
-    #     qc.compose(MCMT(ZGate(), num_qubits - 1, 1), inplace=True)
-    #     qc.x(zero_inds)
-    # return qc.to_gate()
+def create_oracle(n, marked_states):
     oracle = QuantumCircuit(n)
-
-    # Apply X gates to flip to the marked state
-    for i, bit in enumerate(marked_states):
-        if bit == '0':
-            oracle.x(i)
     
-    # Apply a multi-controlled Z gate
-    oracle.h(n-1)
-    for i in range(n-1):
-        oracle.cx(i, n-1)
-    oracle.h(n-1)
+    # Helper function to construct the phase flip for a given state
+    def phase_flip(state):
+        for qubit in range(n):
+            if state[qubit] == '1':
+                oracle.x(qubit)
+        # Apply the multi-controlled X (Toffoli) gate
+        mcx_gate = MCXGate(n-1)  # MCXGate(3) for n=4
+        oracle.append(mcx_gate, range(n))
+        for qubit in range(n):
+            if state[qubit] == '1':
+                oracle.x(qubit)
     
-    # Apply X gates to flip back to the original state
-    for i, bit in enumerate(marked_states):
-        if bit == '0':
-            oracle.x(i)
+    # Apply the phase flip for each marked state
+    for state in marked_states:
+        phase_flip(state)
     
-    return oracle.to_gate()
+    # oracle = oracle.to_gate()
+    return oracle
 
-def create_diffuser(n):
-    """Create the Grover diffuser."""
-    diffuser = QuantumCircuit(n)
-    diffuser.h(range(n))
-    diffuser.x(range(n)) # flip
-    diffuser.h(n-1)
-    diffuser.mcx(list(range(n-1)), n-1)  # Multi-controlled X gate
-    diffuser.h(n-1)
-    diffuser.x(range(n))
-    diffuser.h(range(n))
-    return diffuser.to_gate()
-
+marked_states = ["1110"]
 # change imput to see different states
-marked_states = ["0101"]
 
-if not isinstance(marked_states, list):
-    marked_states = [marked_states]
-
-n = len(marked_states[0])
+# # Apply the custom Oracle to mark the state
+# oracle = grover_oracle(marked_states)
+oracle = create_oracle(4, marked_states)
 
 
-# Initialize the quantum circuit
-qc = QuantumCircuit(n, n)
-
-# Apply Hadamard gates to create superposition
-qc.h(range(n))
-
-# Apply the custom Oracle to mark the state
-oracle = grover_oracle(marked_states, n)
-qc.append(oracle, range(n))
-
-#  Diffuser: Apply the Grover diffusion operator
-diffuser = create_diffuser(n)
-qc.append(diffuser, range(n))
-
-
-optimal_num_iterations = math.floor(
-    math.pi / (4 * math.asin(math.sqrt(len(marked_states) / 2**n)))
-)
-
-# Apply Grover iterations
-for _ in range(optimal_num_iterations):
-    qc.append(oracle, range(n))
-    qc.append(diffuser, range(n))
- 
-
-# Measure the qubits
-qc.measure(range(n), range(n))
-# qc.measure_all()
-
-# print the circuit.
-# oracle.draw(output="mpl", style="iqp")
-# plt.show() 
-
-# # --------------------- GoverOperator implementation -------------------------
-# checking existing implementation to compere
-# grover_op = GroverOperator(oracle)
+# Diffuser
+grover_op = GroverOperator(oracle)
 
 # Repeated applications of this grover_op circuit amplify the marked states, 
 # making them the most probable bit-strings in the output distribution from the circuit. 
 # There is an optimal number of such applications that is determined by the ratio of marked states 
 # to total number of possible computational states:
-# optimal_num_iterations = math.floor(
-#     math.pi / (4 * math.asin(math.sqrt(len(marked_states) / 2**grover_op.num_qubits)))
-# )
-# qc = QuantumCircuit(grover_op.num_qubits)
-# # Create even superposition of all basis states
-# qc.h(range(grover_op.num_qubits))
-# # Apply Grover operator the optimal number of times
-# qc.compose(grover_op.power(optimal_num_iterations), inplace=True)
-# # Measure all qubits
-# qc.measure_all()
-# # ---------------------- END Grove function compere -------------------------
-
+optimal_num_iterations = math.floor(
+    math.pi / (4 * math.asin(math.sqrt(len(marked_states) / 2**grover_op.num_qubits)))
+)
+qc = QuantumCircuit(grover_op.num_qubits)
+# Create even superposition of all basis states
+qc.h(range(grover_op.num_qubits))
+# Apply Grover operator the optimal number of times
+qc.compose(grover_op.power(optimal_num_iterations), inplace=True)
+# Measure all qubits
+qc.measure_all()
 
 # #  ------------------- SIMULATIO -------------------
 # Execute the circuit on a simulato
@@ -148,7 +103,7 @@ job = sampler.run([circuit_isa], shots=5000)
 result = job.result()
 print("Job id: ", job.job_id())
 
-dist = result[0].data.c.get_counts()
+dist = result[0].data.meas.get_counts()
 print("Dist: ", dist)
 
 plot_distribution(dist)
