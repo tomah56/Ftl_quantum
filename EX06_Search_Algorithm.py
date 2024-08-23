@@ -230,8 +230,8 @@ grover_circuit.h(range(n))  # Apply Hadamard gates to create superposition
 
 # Apply the oracle
 # oracle = oracle_oooo()
-# oracle = grover_oracle_0110_1000()
-oracle = create_oracle_mark_1111()
+oracle = grover_oracle_0110_1000()
+# oracle = create_oracle_mark_1111()
 
 # oracle = oracle_mark_1111_1010(n)
 
@@ -242,7 +242,7 @@ diffuser_gate = diffuser(n)
 
 # grover_circuit.append(diffuser_gate, range(n))
 
-for _ in range(3):
+for _ in range(1):
     grover_circuit.append(oracle, range(n))
     grover_circuit.append(diffuser_gate, range(n))
 # oracle = grover_oracle_0110_1000()
@@ -298,6 +298,9 @@ circuit_isa = pm.run(grover_circuit)
 # circuit_isa = pm.run(qc)
 
 sampler = Sampler(backend)
+# Turn on dynamical decoupling with sequence XpXm.
+sampler.options.dynamical_decoupling.enable = True
+sampler.options.dynamical_decoupling.sequence_type = "XpXm"
 job = sampler.run([circuit_isa], shots=1000)
 result = job.result()
 print("Job id: ", job.job_id())
