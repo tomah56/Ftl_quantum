@@ -19,9 +19,8 @@ grover_op = GroverOperator(oracle=mark_state, zero_reflection=diffuse_operator)
 qc = QuantumCircuit(grover_op.num_qubits)
 # Create even superposition of all basis states
 qc.h(range(grover_op.num_qubits))
-# Apply Grover operator the optimal number of times
 qc.compose(grover_op, inplace=True)
-# qc.compose(grover_op.power(optimal_num_iterations), inplace=True)
+
 # Measure all qubits
 qc.measure_all()
 

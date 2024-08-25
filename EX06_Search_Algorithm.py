@@ -245,45 +245,9 @@ diffuser_gate = diffuser(n)
 for _ in range(1):
     grover_circuit.append(oracle, range(n))
     grover_circuit.append(diffuser_gate, range(n))
-# oracle = grover_oracle_0110_1000()
-# # oracle = oracle_mark_1111_1010(n)
-# oracle = grover_oracle(marked_states)
 
-# grover_circuit.append(oracle, range(n))
-
-# # # Apply Grover's diffusion operator
-# diffuser_gate = diffuser(n)
-
-# grover_circuit.append(diffuser_gate, range(n))
-
-# oracle = grover_oracle_0110_1000()
-# # oracle = oracle_mark_1111_1010(n)
-
-# grover_circuit.append(oracle, range(n))
-
-# # Apply Grover's diffusion operator
-# diffuser_gate = diffuser(n)
-
-# grover_circuit.append(diffuser_gate, range(n))
 
 grover_circuit.measure(range(n), range(n))
-
-# # Diffuser
-# grover_op = GroverOperator(oracle)
-# # Repeated applications of this grover_op circuit amplify the marked states, 
-# # making them the most probable bit-strings in the output distribution from the circuit. 
-# # There is an optimal number of such applications that is determined by the ratio of marked states 
-# # to total number of possible computational states:
-# optimal_num_iterations = math.floor(
-#     (math.pi / 4) * (math.sqrt(16))
-# )
-# qc = QuantumCircuit(grover_op.num_qubits)
-# # Create even superposition of all basis states
-# qc.h(range(grover_op.num_qubits))
-# # Apply Grover operator the optimal number of times
-# qc.compose(grover_op.power(optimal_num_iterations), inplace=True)
-# # Measure all qubits
-# qc.measure_all()
 
 # #  ------------------- SIMULATIO -------------------
 # Execute the circuit on a simulato
@@ -298,9 +262,11 @@ circuit_isa = pm.run(grover_circuit)
 # circuit_isa = pm.run(qc)
 
 sampler = Sampler(backend)
+
 # Turn on dynamical decoupling with sequence XpXm.
 sampler.options.dynamical_decoupling.enable = True
 sampler.options.dynamical_decoupling.sequence_type = "XpXm"
+
 job = sampler.run([circuit_isa], shots=1000)
 result = job.result()
 print("Job id: ", job.job_id())
