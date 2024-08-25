@@ -30,8 +30,6 @@ job = service.job('cv2bfrf12hg0008dh5fg')
 
 # Constant function job
 # job = service.job('cv28srq184p00089kv0g')
-
-
 # print("job: ", job.properties())
 # print("job: ", dir(job.properties()))
 
@@ -42,7 +40,6 @@ print("pub results:",  pub_result)
 # values = pub_result.data.meas.get_counts()
 # print("values:", dir(pub_result.data))
 # print("values:", pub_result.data.values())
-
 # values = pub_result.data.meas.get_counts()
 values = pub_result.data.c.array 
 values = pub_result.data.c.get_counts()
@@ -83,8 +80,6 @@ plt.show()
 # print(job_result)
 # plot_histogram(values)
 # plt.show() 
-
-
 
 
 # To get counts for a particular pub result, use 

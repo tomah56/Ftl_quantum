@@ -14,13 +14,11 @@ bell = QuantumCircuit(2,2)
 bell.h(0)
 # Apply a CNOT gate with the first qubit as control and the second qubit as target
 bell.cx(0, 1)
-# bell.measure([0, 1], [0, 1])
+# Visualize the quantum circuit
+bell.draw('mpl')
+plt.show()
 
 bell.measure_all()
-
-# Visualize the quantum circuit
-# bell.draw('mpl')
-# plt.show()
 
 backend = service.least_busy(operational=True, simulator=False)
 
@@ -31,10 +29,9 @@ transplie_opti = pm.run(bell)
 sampler = Sampler(backend)
 # execute the quantum circuit
 results = sampler.run([transplie_opti], shots=500).result()
-print("results:", results)
-
+# print("results:", results)
 pub_result = results[0]
-print("pub results:",  pub_result)
+# print("pub results:",  pub_result)
 values = pub_result.data.meas.get_counts()
 print("values:", values)
 plot_histogram(values)

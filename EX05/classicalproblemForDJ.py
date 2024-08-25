@@ -15,7 +15,6 @@ def evaluate_function(func):
 def constant_function(x):
     return 0
 
-
 # he XOR operation is a fundamental logical operation that outputs 1 
 # only when the two input bits are different 1,0 -> 1... 1,1 -> 0
 # Example balanced function

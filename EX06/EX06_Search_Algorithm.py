@@ -13,15 +13,7 @@ from qiskit.circuit.library import MCXGate
 service = QiskitRuntimeService()
 
 def create_oracle_mark_1111():
-    """
-    Create a quantum oracle that marks the state |1111⟩ for a n-qubit system.
-    
-    Parameters:
-    n (int): Number of qubits (should be 4 for this example).
-
-    Returns:
-    QuantumCircuit: The oracle as a quantum circuit.
-    """
+    """Create a quantum oracle that marks the state |1111⟩ for a n-qubit system."""
     n = 4
     oracle = QuantumCircuit(n)
     # oracle.barrier()
@@ -44,16 +36,7 @@ def create_oracle_mark_1111():
     return oracle.to_gate()
 
 def grover_oracle_0110_1000():
-    """Build a Grover oracle for multiple marked states
-
-    Here we assume all input marked states have the same number of bits
-
-    Parameters:
-        marked_states (str or list): Marked states of oracle
-
-    Returns:
-        QuantumCircuit: Quantum circuit representing Grover oracle
-    """
+    """Build a Grover oracle for multiple marked states"""
     # Compute the number of qubits in circuit
     num_qubits = 4
 
@@ -94,15 +77,7 @@ def grover_oracle_0110_1000():
     return qc.to_gate()
 
 def oracle_mark_1111_1010(n):
-    """
-    Create an oracle that marks the |1111⟩ and |1010⟩ states by flipping their phases.
-
-    Parameters:
-    n (int): The number of qubits.
-
-    Returns:
-    QuantumCircuit: The oracle as a quantum circuit.
-    """
+    """Create an oracle that marks the |1111⟩ and |1010⟩ states by flipping their phases."""
     oracle = QuantumCircuit(n)
     
     # Phase flip for |1111⟩
@@ -137,15 +112,7 @@ def oracle_oooo():
     return oracle.to_gate()
 
 def diffuser(n):
-    """
-    Create the Grover diffusion operator (inversion about the mean) for n qubits.
-
-    Parameters:
-    n (int): The number of qubits.
-
-    Returns:
-    QuantumCircuit: The diffuser as a quantum circuit.
-    """
+    """Create the Grover diffusion operator (inversion about the mean) for n qubits."""
     diff = QuantumCircuit(n)
     
     # Apply Hadamard to all qubits

@@ -1,11 +1,10 @@
 from qiskit import QuantumCircuit
-from qiskit.visualization import plot_histogram
+from qiskit.visualization import plot_histogram, plot_distribution
 from qiskit_aer import AerSimulator
 from qiskit_ibm_runtime import QiskitRuntimeService, SamplerV2 as Sampler
 from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
-from qiskit.visualization import plot_distribution
 import matplotlib.pyplot as plt
-from qiskit_aer.noise import NoiseModel, depolarizing_error
+from qiskit_aer.noise import NoiseModel
 
 
 # Define the secret string (must be a binary string of length n)
@@ -52,6 +51,7 @@ qc.h(range(n))
 qc.measure(range(n), range(n))
 
 # Execute the circuit on a simulato
+# apply noise simpulation
 # noise_model = NoiseModel()
 service = QiskitRuntimeService()
 backendreal = service.backend("ibm_brisbane")
@@ -73,18 +73,10 @@ result = job.result()
 print("Job id: ", job.job_id())
 
 counts = result[0].data.c.get_counts()
-print("Dist: ", counts)
+print("Counts: ", counts)
 
 plot_histogram(counts)
 plt.show() 
-
-# Get the counts (results) from the measurement
-# counts = result.get_counts()
-
-# # Print results
-# print("Counts:", counts)
-# plot_histogram(counts)
-# plt.show() 
 
 # Analyze results to find the secret string
 from collections import Counter

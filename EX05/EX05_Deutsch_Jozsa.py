@@ -32,14 +32,11 @@ def oracle(qc, n):
 #      # n is the number of qubits representing the input
 #     # Add a single qubit for the output
 #     output_qubit = n
-
 #     # Apply the XOR pattern
 #     for i in range(n):
 #         qc.cx(i, output_qubit)
-    
 #     # Apply a Z gate to flip the sign of the |1⟩ state if needed
 #     qc.z(output_qubit)
-    
 #     # Apply a final X gate to ensure the output is 1 for the correct cases
 #     qc.x(output_qubit)
 
@@ -73,8 +70,6 @@ job = sampler.run([transplie_opti], shots=500)
 print("Job id: ", job.job_id())
 
 results = job.result()
-
-
 # print("results: ", results)
 
 pub_result = results[0]
@@ -90,8 +85,6 @@ plt.show()
 # Hadamard gates are applied again to the control qubits.
 # This step effectively "undoes" the superposition if the oracle is constant,
 #  collapsing the control qubits back to the ∣000⟩ state.
-
 # If the oracle is balanced, the superposition states interfere destructively for the ∣000⟩ state, 
 # causing at least one of the control qubits to be measured as ∣1⟩.
-
 # https://learning.quantum.ibm.com/course/fundamentals-of-quantum-algorithms/quantum-query-algorithms#section-the-deutsch-jozsa-algorithm

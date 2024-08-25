@@ -22,4 +22,3 @@ QiskitRuntimeService.save_account(
 )
 
 print("your account is ready to use")
-# Load saved credentials
