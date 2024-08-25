@@ -1,6 +1,6 @@
 from qiskit_aer.primitives import Sampler
 from qiskit import QuantumCircuit
-from qiskit.visualization import plot_histogram
+from qiskit.visualization import plot_histogram, plot_bloch_multivector
 import matplotlib.pyplot as plt
 
 # quantum circuit to make a Bell state
@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 # bell = QuantumCircuit(2,2)
 # two qubit no mesurment bits in simulations focusing on the quantum operation
 bell = QuantumCircuit(2)
+
+# Bell State |Φ⁺⟩ = (|00⟩ + |11⟩) / √2
 bell.h(0)
 # Apply a CNOT gate with the first qubit as control and the second qubit as target
 bell.cx(0, 1)
@@ -20,7 +22,9 @@ bell.draw('mpl')
 plt.show()
  
 # execute the quantum circuit
-quasi_dists = Sampler().run(bell, shots=500).result().quasi_dists[0]
+results = Sampler().run(bell, shots=500).result()
+# print(results)
+quasi_dists = results.quasi_dists[0]
 print(quasi_dists)
 
 # Plot results with custom options
