@@ -89,3 +89,6 @@ def find_secret_string(counts):
 # Find and print the most frequent result
 discovered_secret = find_secret_string(counts)
 print("Most frecvent reuslt (binary):", discovered_secret)
+
+rev_target = discovered_secret[::-1]
+print("The Secret string: ", rev_target)
