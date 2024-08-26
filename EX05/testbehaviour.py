@@ -6,12 +6,8 @@ from qiskit.visualization import plot_histogram
 import matplotlib.pyplot as plt
 from qiskit_aer.noise import NoiseModel
 
-
 service = QiskitRuntimeService()
 
-# Number of qubits for the function, plus one ancillary.
-# The ancillary qubit's role is to facilitate quantum interference
-#  by interacting with the control qubits via the oracle
 n = 3 
 
 # Create the quantum circuit
@@ -19,37 +15,15 @@ qc = QuantumCircuit(n + 1, n)
 
 # Initialize the ancillary qubit in state |1> and put input qubits in superposition
 qc.x(n)
+
 qc.h(range(n + 1))
 
-# Oracle: Example of a constant function oracle
-# def oracle(qc, n):
-#     # Apply no operation, function f(x) = 0 or 1 for all x
-#     pass
+for i in range(n):
+    qc.cx(i, n)
 
-# Oracle: Example of a balanced function oracle
-# For each control qubit that is ∣1⟩, the ancillary qubit flips its state 
-# (from ∣1⟩ to ∣0⟩, or vice versa).
-def oracle(qc, n):
-    for i in range(n):
-        qc.cx(i, n)
+qc.x(n)
+# qc.z(n)
 
-# Balanced 2
-# def oracle(qc, n):
-#      # n is the number of qubits representing the input
-#     # Add a single qubit for the output
-#     output_qubit = n
-#     # Apply the XOR pattern
-#     for i in range(n):
-#         qc.cx(i, output_qubit)
-#     # Apply a Z gate to flip the sign of the |1⟩ state if needed
-#     qc.z(output_qubit)
-#     # Apply a final X gate to ensure the output is 1 for the correct cases
-#     qc.x(output_qubit)
-
-# Apply the oracle
-oracle(qc, n)
-
-# Apply Hadamard gates to input qubits after oracle
 qc.h(range(n))
 
 # Measure the input qubits
@@ -63,14 +37,15 @@ qc.measure(range(n), range(n))
 #     print("balanced")
 # else:
 #     print("constant")
-# backendreal = service.backend("ibm_brisbane")
-# noise_model = NoiseModel.from_backend(backendreal)
 
-# backend = AerSimulator(noise_model=noise_model)
+backendreal = service.backend("ibm_brisbane")
+noise_model = NoiseModel.from_backend(backendreal)
+
+backend = AerSimulator(noise_model=noise_model)
 
 # ----- end SIMU -----
 
-backend = service.least_busy(operational=True, simulator=False)
+# backend = service.least_busy(operational=True, simulator=False)
 
 pm = generate_preset_pass_manager(backend=backend, optimization_level=1)
 transplie_opti = pm.run(qc)
