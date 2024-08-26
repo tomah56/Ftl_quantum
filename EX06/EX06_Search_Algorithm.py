@@ -94,7 +94,9 @@ def oracle_oooo():
     return oracle.to_gate()
 
 def diffuser(n):
-    """Create the Grover diffusion operator (inversion about the mean) for n qubits."""
+    """Create the Grover diffusion operator (inversion about the mean) for n qubits.
+    Amplifies the probability of the marked state by reflecting the quantum state around the mean amplitude.
+    """
     diff = QuantumCircuit(n)
     
     # Apply Hadamard to all qubits

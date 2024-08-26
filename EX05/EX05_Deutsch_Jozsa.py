@@ -34,17 +34,17 @@ def oracle(qc, n):
         qc.cx(i, n)
 
 # Balanced 2
-# def oracle(qc, n):
-#      # n is the number of qubits representing the input
-#     # Add a single qubit for the output
-#     output_qubit = n
-#     # Apply the XOR pattern
-#     for i in range(n):
-#         qc.cx(i, output_qubit)
-#     # Apply a Z gate to flip the sign of the |1⟩ state if needed
-#     qc.z(output_qubit)
-#     # Apply a final X gate to ensure the output is 1 for the correct cases
-#     qc.x(output_qubit)
+def oracle_II(qc, n):
+     # n is the number of qubits representing the input
+    # Add a single qubit for the output
+    output_qubit = n
+    # Apply the XOR pattern
+    for i in range(n):
+        qc.cx(i, output_qubit)
+    # Apply a Z gate to flip the sign of the |1⟩ state if needed
+    qc.z(output_qubit)
+    # Apply a final X gate to ensure the output is 1 for the correct cases
+    qc.x(output_qubit)
 
 # Apply the oracle
 oracle(qc, n)

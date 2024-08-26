@@ -2,6 +2,11 @@
 
 (notes work in progress)
 
+Deutsch Jozsan
+4 qubit examples
+Balancend oracle
+Apply CNOT gates 
+
 Search algorithm Grover
 
 3 qubit:

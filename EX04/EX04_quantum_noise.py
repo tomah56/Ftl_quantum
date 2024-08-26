@@ -4,7 +4,6 @@ from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
 from qiskit.visualization import plot_histogram
 import matplotlib.pyplot as plt
 
-
 # initializing QiskitRuntimeService, if they were not previously saved you have to give your token.
 service = QiskitRuntimeService()
 
