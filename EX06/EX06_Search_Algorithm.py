@@ -2,12 +2,12 @@ from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
 from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
 from qiskit_ibm_runtime import QiskitRuntimeService, SamplerV2 as Sampler
-from qiskit.circuit.library import GroverOperator, MCMT, ZGate
+from qiskit.circuit.library import MCMT, ZGate
 from qiskit.visualization import plot_distribution
 import matplotlib.pyplot as plt
+from qiskit_aer.noise import NoiseModel
 import math
 from qiskit.circuit.library import MCXGate
-
 
 
 service = QiskitRuntimeService()
@@ -15,35 +15,21 @@ service = QiskitRuntimeService()
 def create_oracle_mark_1111():
     """Create a quantum oracle that marks the state |1111⟩ for a n-qubit system."""
     n = 4
-    oracle = QuantumCircuit(n)
-    # oracle.barrier()
-    
-    # Step 1: Apply X gates to all qubits to map |1111⟩ to |0000⟩
-    # oracle.x(range(n))
-    # oracle.h(n-1)  # Apply Hadamard to the last qubit
-    # oracle.cz(0,1)
-    # oracle.cz(0,2)
-    oracle.cz(0,3)
-    # oracle.cz(0,0)
-    # oracle.h(3)  # Reapply Hadamard to the last qubit
-    
-    # # Step 2: Apply a multi-controlled Z gate (Toffoli gate in this case)
+    # Phase flip for |1111⟩
+    oracle.x(range(n))                  # Apply X to all qubits to map |1111⟩ to |0000⟩
+    oracle.h(n-1)                       # Apply Hadamard to the last qubit
     oracle.mcx(list(range(n-1)), n-1)   # Multi-controlled X (flips the phase of |0000⟩ -> |1111⟩)
-    
-    # # Step 3: Reapply X gates to revert back to original basis
-    oracle.x(range(n))
+    oracle.h(n-1)                       # Revert Hadamard on the last qubit
+    oracle.x(range(n))                  # Revert X on all qubits
     
     return oracle.to_gate()
 
-def grover_oracle_0110_1000():
+def grover_oracle_0110():
     """Build a Grover oracle for multiple marked states"""
-    # Compute the number of qubits in circuit
     num_qubits = 4
-
     qc = QuantumCircuit(num_qubits)
     # Mark each target state in the input list
-    
-        # Flip target bit-string to match Qiskit bit-ordering
+    # Flip target bit-string to match Qiskit bit-ordering
     target = "0110"
     rev_target = target[::-1]
     # Find the indices of all the '0' elements in bit-string
@@ -53,7 +39,6 @@ def grover_oracle_0110_1000():
     qc.x(zero_inds)
     qc.compose(MCMT(ZGate(), num_qubits - 1, 1), inplace=True)
     qc.x(zero_inds)
-
     # target = "1000"
     # rev_target = target[::-1]
     # # Find the indices of all the '0' elements in bit-string
@@ -63,7 +48,6 @@ def grover_oracle_0110_1000():
     # qc.x(zero_inds)
     # qc.compose(MCMT(ZGate(), num_qubits - 1, 1), inplace=True)
     # qc.x(zero_inds)
-
     # target = "1011"
     # rev_target = target[::-1]
     # # Find the indices of all the '0' elements in bit-string
@@ -73,7 +57,6 @@ def grover_oracle_0110_1000():
     # qc.x(zero_inds)
     # qc.compose(MCMT(ZGate(), num_qubits - 1, 1), inplace=True)
     # qc.x(zero_inds)
-
     return qc.to_gate()
 
 def oracle_mark_1111_1010(n):
@@ -81,20 +64,19 @@ def oracle_mark_1111_1010(n):
     oracle = QuantumCircuit(n)
     
     # Phase flip for |1111⟩
-    oracle.x(range(n))                  # Apply X to all qubits to map |1111⟩ to |0000⟩
-    oracle.h(n-1)                       # Apply Hadamard to the last qubit
-    oracle.mcx(list(range(n-1)), n-1)   # Multi-controlled X (flips the phase of |0000⟩ -> |1111⟩)
-    oracle.h(n-1)                       # Revert Hadamard on the last qubit
-    oracle.x(range(n))                  # Revert X on all qubits
+    oracle.x(range(n))
+    oracle.h(n-1)
+    oracle.mcx(list(range(n-1)), n-1)
+    oracle.h(n-1)
+    oracle.x(range(n))
 
     # Phase flip for |1010⟩
-    oracle.x([0, 2])                    # Apply X to qubits 0 and 2 to map |1010⟩ to |1111⟩
-    oracle.h(n-1)                       # Apply Hadamard to the last qubit
-    oracle.mcx(list(range(n-1)), n-1)   # Multi-controlled X (flips the phase of |1111⟩ -> |1010⟩)
-    oracle.h(n-1)                       # Revert Hadamard on the last qubit
-    oracle.x([0, 2])                    # Revert X on qubits 0 and 2
+    oracle.x([0, 2])
+    oracle.h(n-1)
+    oracle.mcx(list(range(n-1)), n-1)
+    oracle.h(n-1)
+    oracle.x([0, 2])
     
-    # return oracle.to_gate(name="Oracle")
     return oracle.to_gate()
 
 def oracle_oooo():
@@ -134,7 +116,6 @@ def diffuser(n):
     
     return diff.to_gate()
 
-
 def grover_oracle(marked_states):
     """Build a Grover oracle for multiple marked states"""
     if not isinstance(marked_states, list):
@@ -164,7 +145,6 @@ def grover_oracle(marked_states):
 
 def create_oracle(n, marked_states):
     oracle = QuantumCircuit(n)
-    
     # Helper function to construct the phase flip for a given state
     def phase_flip(state):
         for qubit in range(n):
@@ -184,44 +164,54 @@ def create_oracle(n, marked_states):
     # oracle = oracle.to_gate()
     return oracle
 
+
 # Not any state can be selected in a given oracle. most state needs specific oracle to mark them.
-# marked_states = ["0000"]
-# marked_states = ["011", "100"]
-n = 4
+marked_states = ["01"]
+marked_states = ["001", "010" , "110"]
+marked_states = ["0110"]
+marked_states = ["010", "111"]
+
+n = len(marked_states[0]) 
+
 # # Apply the custom Oracle to mark the state
 # oracle = create_oracle(4, marked_states)
-# oracle = grover_oracle(marked_states)
 
 grover_circuit = QuantumCircuit(n, n)
 grover_circuit.h(range(n))  # Apply Hadamard gates to create superposition
 
 # Apply the oracle
+oracle = grover_oracle(marked_states)
 # oracle = oracle_oooo()
-oracle = grover_oracle_0110_1000()
+# oracle = grover_oracle_0110()
 # oracle = create_oracle_mark_1111()
-
 # oracle = oracle_mark_1111_1010(n)
-
-# grover_circuit.append(oracle, range(n))
 
 # Apply Grover's diffusion operator
 diffuser_gate = diffuser(n)
 
-# grover_circuit.append(diffuser_gate, range(n))
+# The optimal number of iterations is 
+# 𝜋/4 * sqrt(𝑁), where N = 2^n is the total number of possible states.
+N = pow(2, n)
+optimal_lit = math.pi / 4 * math.sqrt(N)
+literations = math.floor(optimal_lit) 
+# print("Literations: ", literations)
 
-for _ in range(1):
+for _ in range(literations):
     grover_circuit.append(oracle, range(n))
     grover_circuit.append(diffuser_gate, range(n))
-
 
 grover_circuit.measure(range(n), range(n))
 
 # #  ------------------- SIMULATIO -------------------
 # Execute the circuit on a simulato
+backendreal = service.backend("ibm_brisbane")
+noise_model = NoiseModel.from_backend(backendreal)
+
+backend = AerSimulator(noise_model=noise_model)
 # backend = AerSimulator()
 
 # # --------------real Quantum computer --------------
-backend = service.least_busy(operational=True, simulator=False)
+# backend = service.least_busy(operational=True, simulator=False)
 
 target = backend.target
 pm = generate_preset_pass_manager(target=target, optimization_level=3)
@@ -244,7 +234,6 @@ print("Dist: ", dist)
 
 plot_distribution(dist)
 plt.show() 
-
 
 # Grover's algorithm
 # https://learning.quantum.ibm.com/tutorial/grovers-algorithm

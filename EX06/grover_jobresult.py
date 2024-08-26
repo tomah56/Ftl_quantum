@@ -1,7 +1,6 @@
 from qiskit_ibm_runtime import QiskitRuntimeService
 from qiskit.visualization import plot_distribution
 import matplotlib.pyplot as plt
-import numpy as np
 
 service = QiskitRuntimeService()
 job = service.job('cv3h8xb1vt8g008a36v0')
